@@ -1,0 +1,138 @@
+int partyRegistration() {
+    struct Party {
+        char name[100];
+        char id[10];
+    };
+
+    struct Candidate {
+        char name[100];
+        int number;
+        char partyname[10];
+    };
+
+    int countLines(const char *filename) {
+        FILE *fp = fopen(filename, "r");
+        if (!fp) return 0;
+        int count = 0;
+        char line[200];
+        while (fgets(line, sizeof(line), fp) != NULL) count++;
+        fclose(fp);
+        return count;
+    }
+
+    char input[10];
+    FILE *fpParty, *fpCandidate;
+    struct Party p;
+    struct Candidate c;
+    char line[200];
+    int choice;
+
+    printf("\n1.Party registration\n");
+    printf("2.Candidate registration\n\n");
+    printf("Enter your choice: ");
+    fgets(input, sizeof(input), stdin);
+    sscanf(input, "%d", &choice);
+
+    switch (choice) {
+        case 1: {
+            int partyCount = countLines("party.txt");
+            if (partyCount >= 5) {
+                printf("Party registration limit reached (5 max)!\n");
+                return 1;
+            }
+
+            fpParty = fopen("party.txt", "a+");
+            if (fpParty == NULL) return 1;
+
+            printf("Party name: ");
+            fgets(p.name, sizeof(p.name), stdin);
+            p.name[strcspn(p.name, "\n")] = '\0';
+
+            printf("Party ID: ");
+            fgets(p.id, sizeof(p.id), stdin);
+            p.id[strcspn(p.id, "\n")] = '\0';
+
+            fprintf(fpParty, "%s %s\n", p.name, p.id);
+            fclose(fpParty);
+
+            printf("Party registered successfully!\n");
+            break;
+        }
+
+        case 2: {
+            int candidateCount = countLines("candidate.txt");
+            if (candidateCount >= 25) {
+                printf("Candidate registration limit reached (25 max)!\n");
+                return 1;
+            }
+
+            fpParty = fopen("party.txt", "r");
+            if (fpParty == NULL) {
+                printf("No parties registered yet!\n");
+                return 1;
+            }
+
+            printf("\nAvailable Parties:\n\n");
+            while (fgets(line, sizeof(line), fpParty) != NULL) {
+                char pname[100], pid[10];
+                if (sscanf(line, "%s %s", pname, pid) == 2) {
+                    printf("Party: %s (ID: %s)\n", pname, pid);
+                }
+            }
+            fclose(fpParty);
+            
+            printf ("\n");
+            printf("Candidate name: ");
+            fgets(c.name, sizeof(c.name), stdin);
+            c.name[strcspn(c.name, "\n")] = '\0';
+
+            printf("Candidate number (1-5): ");
+            fgets(input, sizeof(input), stdin);
+            sscanf(input, "%d", &c.number);
+
+            if (c.number < 1 || c.number > 5) {
+                printf("Invalid candidate number! Must be between 1 and 5.\n");
+                return 1;
+            }
+
+            printf("Enter Party name: ");
+            fgets(c.partyname, sizeof(c.partyname), stdin);
+            c.partyname[strcspn(c.partyname, "\n")] = '\0';
+
+            int found = 0;
+            fpParty = fopen("party.txt", "r");
+            if (fpParty != NULL) {
+                while (fgets(line, sizeof(line), fpParty) != NULL) {
+                    char pname[100], pid[10];
+                    if (sscanf(line, "%s %s", pname, pid) == 2) {
+                        if (strcmp(pname, c.partyname) == 0) {
+                            found = 1;
+                            printf("\n\nCandidate assigned to party: %s\n", pname);
+                            break;
+                        }
+                    }
+                }
+                fclose(fpParty);
+            }
+
+            if (!found) {
+                printf("Invalid Party Name!\nCandidate not registered.\n");
+                return 1;
+            }
+
+            fpCandidate = fopen("candidate.txt", "a+");
+            if (fpCandidate == NULL) return 1;
+
+            fprintf(fpCandidate, "%s %d %s 0\n", c.name, c.number, c.partyname);
+            fclose(fpCandidate);
+
+            printf("Candidate registered successfully!\n");
+            break;
+        }
+
+        default:
+            printf("Invalid choice!\n");
+    }
+
+    return 0;
+}
